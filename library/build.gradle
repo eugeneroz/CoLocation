@@ -13,18 +13,18 @@ ext {
 apply plugin: "com.vanniktech.maven.publish"
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = "0.8.8"
 }
 
 android {
-    compileSdkVersion 30
+    namespace 'com.eugeneroz.colocation'
+    compileSdkVersion 33
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 30
-        versionCode 1
-        versionName "1.1.0"
+        minSdkVersion 21
+        targetSdkVersion 33
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -32,36 +32,41 @@ android {
             consumerProguardFiles 'proguard-rules-consumer.pro'
         }
     }
+
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
+
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "11"
     }
+
     testOptions {
         unitTests.returnDefaultValues = true
     }
-    lintOptions {
-        abortOnError false
+
+    lint {
+        abortOnError true
     }
+
 }
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar'])
 
-    api 'com.google.android.gms:play-services-location:18.0.0'
+    api 'com.google.android.gms:play-services-location:20.0.0'
 
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.5.10"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.0"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.5.0"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4'
 
-    testImplementation "io.mockk:mockk:1.11.0"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:5.7.2"
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.7.2"
-    testImplementation "org.junit.jupiter:junit-jupiter-params:5.7.2"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.0'
-
+    testImplementation 'io.mockk:mockk:1.13.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation 'junit:junit:4.13.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.4'
 }
 
 task jacocoTestReport(type: JacocoReport, dependsOn: ['testDebugUnitTest'])

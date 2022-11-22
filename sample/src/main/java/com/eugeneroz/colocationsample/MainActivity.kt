@@ -1,6 +1,5 @@
-package com.patloew.colocationsample
+package com.eugeneroz.colocationsample
 
-import android.app.Activity
 import android.content.Intent
 import android.location.Address
 import android.location.Location
@@ -10,19 +9,15 @@ import android.view.MenuItem
 import android.widget.TextView
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.material.snackbar.Snackbar
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
-import com.patloew.colocation.CoGeocoder
-import com.patloew.colocation.CoLocation
 import java.text.DateFormat
-import java.util.Date
+import java.util.*
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,15 +41,7 @@ class MainActivity : AppCompatActivity() {
     private var locationText: TextView? = null
     private var addressText: TextView? = null
 
-    private val viewModel: MainViewModel by viewModels {
-        object : ViewModelProvider.Factory {
-            override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-                MainViewModel(
-                    CoLocation.from(this@MainActivity),
-                    CoGeocoder.from(this@MainActivity)
-                ) as T
-        }
-    }
+    private val viewModel: MainViewModel by viewModels { MainViewModel.Factory }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,7 +63,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == Activity.RESULT_OK) viewModel.startLocationUpdates()
+        if (requestCode == REQUEST_SHOW_SETTINGS && resultCode == RESULT_OK) viewModel.startLocationUpdates()
     }
 
     private fun checkPlayServicesAvailable() {
@@ -85,7 +72,7 @@ class MainActivity : AppCompatActivity() {
 
         if (status != ConnectionResult.SUCCESS) {
             if (apiAvailability.isUserResolvableError(status)) {
-                apiAvailability.getErrorDialog(this, status, 1).show()
+                apiAvailability.getErrorDialog(this, status, 1)?.show()
             } else {
                 Snackbar.make(
                     lastUpdate!!,
@@ -118,7 +105,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun onLocationUpdate(location: Location?) {
         lastUpdate!!.text = DATE_FORMAT.format(Date())
-        locationText!!.text = location?.run { "$latitude, $longitude" } ?: "N/A"
+        locationText!!.text = location?.run { "$provider: $latitude, $longitude" } ?: "N/A"
     }
 
     private fun onAddressUpdate(address: Address?) {

@@ -1,11 +1,11 @@
-package com.patloew.colocationsample
+package com.eugeneroz.colocationsample
 
 import android.location.Address
 import android.location.Location
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.google.android.gms.location.LocationRequest
-import com.patloew.colocation.CoGeocoder
-import com.patloew.colocation.CoLocation
+import com.eugeneroz.colocation.CoGeocoder
+import com.eugeneroz.colocation.CoLocation
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -19,7 +19,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

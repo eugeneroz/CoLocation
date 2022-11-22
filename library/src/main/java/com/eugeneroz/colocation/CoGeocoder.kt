@@ -1,4 +1,4 @@
-package com.patloew.colocation
+package com.eugeneroz.colocation
 
 import android.content.Context
 import android.location.Address
@@ -8,7 +8,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import java.util.Locale
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.

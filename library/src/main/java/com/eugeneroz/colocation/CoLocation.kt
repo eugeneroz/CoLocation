@@ -1,21 +1,16 @@
-package com.patloew.colocation
+package com.eugeneroz.colocation
 
 import android.Manifest
 import android.app.Activity
 import android.content.Context
-import android.content.IntentSender
 import android.location.Location
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.location.LocationRequest
-import com.google.android.gms.location.LocationSettingsRequest
-import com.google.android.gms.location.SettingsClient
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import com.google.android.gms.location.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,9 +28,18 @@ import kotlinx.coroutines.flow.Flow
  * CoLocation wraps [FusedLocationProviderClient] and [SettingsClient] in Kotlin coroutines and [Flow].
  */
 interface CoLocation {
-
     companion object {
-        fun from(context: Context): CoLocation = CoLocationImpl(context.applicationContext)
+        fun from(context: Context, useFusedLocation: Boolean = true): CoLocation {
+            val locationProvider = LocationServices.getFusedLocationProviderClient(context)
+            val settingsClient = LocationServices.getSettingsClient(context)
+
+            return if (useFusedLocation) {
+                CoLocationFusedLocationImpl(locationProvider, settingsClient)
+            }
+            else {
+                CoLocationLocationManagerImpl(context.applicationContext, settingsClient)
+            }
+        }
     }
 
     /**
@@ -109,9 +113,11 @@ interface CoLocation {
      * [RENDEZVOUS][Channel.RENDEZVOUS], [UNLIMITED][Channel.UNLIMITED] or a non-negative value indicating an
      * explicitly requested size.
      */
-    @ExperimentalCoroutinesApi
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    fun getLocationUpdates(locationRequest: LocationRequest, capacity: Int = Channel.CONFLATED): Flow<Location>
+    fun getLocationUpdates(
+        locationRequest: LocationRequest,
+        capacity: Int = Channel.CONFLATED
+    ): Flow<Location>
 
     /**
      * Sets the mock location to be used for the location provider. This location will be used in place of any actual
@@ -163,11 +169,7 @@ interface CoLocation {
              * done. If the resultCode is RESULT_OK, the location settings are now satisfied.
              */
             fun resolve(activity: Activity, requestCode: Int) {
-                try {
-                    exception.startResolutionForResult(activity, requestCode)
-                } catch (sendEx: IntentSender.SendIntentException) {
-                    // Ignore the error.
-                }
+                exception.startResolutionForResult(activity, requestCode)
             }
         }
 

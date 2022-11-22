@@ -1,18 +1,24 @@
-package com.patloew.colocationsample
+package com.eugeneroz.colocationsample
 
+import android.annotation.SuppressLint
+import android.app.Application
 import android.location.Address
 import android.location.Location
+import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.*
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.CreationExtras
+import androidx.savedstate.SavedStateRegistryOwner
+import com.eugeneroz.colocation.CoGeocoder
+import com.eugeneroz.colocation.CoLocation
 import com.google.android.gms.location.LocationRequest
-import com.patloew.colocation.CoGeocoder
-import com.patloew.colocation.CoLocation
+import com.google.android.gms.location.Priority
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +33,12 @@ import kotlinx.coroutines.launch
  * limitations under the License. */
 class MainViewModel(
     private val coLocation: CoLocation,
-    private val coGeocoder: CoGeocoder
-) : ViewModel(), LifecycleObserver {
+    private val coGeocoder: CoGeocoder,
+) : ViewModel(), DefaultLifecycleObserver {
 
     private val locationRequest: LocationRequest = LocationRequest.create()
-        .setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY)
-        //.setSmallestDisplacement(1f)
-        //.setNumUpdates(3)
+        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
         .setInterval(5000)
-        .setFastestInterval(2500)
 
 
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
@@ -49,21 +52,21 @@ class MainViewModel(
 
     private var locationUpdatesJob: Job? = null
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_START)
-    fun onStart() {
+    override fun onStart(owner: LifecycleOwner) {
+        super.onStart(owner)
         startLocationUpdatesAfterCheck()
     }
 
-    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
-    fun onStop() {
+    override fun onStop(owner: LifecycleOwner) {
+        super.onStop(owner)
         locationUpdatesJob?.cancel()
         locationUpdatesJob = null
     }
 
+    @SuppressLint("MissingPermission")
     private fun startLocationUpdatesAfterCheck() {
         viewModelScope.launch {
-            val settingsResult = coLocation.checkLocationSettings(locationRequest)
-            when (settingsResult) {
+            when (val settingsResult = coLocation.checkLocationSettings(locationRequest)) {
                 CoLocation.SettingsResult.Satisfied -> {
                     coLocation.getLastLocation()?.run(mutableLocationUpdates::postValue)
                     startLocationUpdates()
@@ -74,6 +77,7 @@ class MainViewModel(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun startLocationUpdates() {
         locationUpdatesJob?.cancel()
         locationUpdatesJob = viewModelScope.launch {
@@ -88,4 +92,38 @@ class MainViewModel(
         }
     }
 
+    companion object {
+        fun provideFactory(
+            application: Application,
+            owner: SavedStateRegistryOwner,
+            defaultArgs: Bundle? = null
+        ): AbstractSavedStateViewModelFactory = object : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
+            override fun <T : ViewModel> create(
+                key: String,
+                modelClass: Class<T>,
+                savedStateHandle: SavedStateHandle
+            ): T {
+                @Suppress("UNCHECKED_CAST")
+                return MainViewModel(
+                    CoLocation.from(application, useFusedLocation = false),
+                    CoGeocoder.from(application)) as T
+            }
+
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            override fun <T : ViewModel> create(
+                modelClass: Class<T>,
+            extras: CreationExtras
+            ): T {
+                val application = checkNotNull(extras[APPLICATION_KEY])
+
+                return MainViewModel(
+                    CoLocation.from(application, useFusedLocation = false),
+                    CoGeocoder.from(application)
+                ) as T
+            }
+        }
+    }
 }

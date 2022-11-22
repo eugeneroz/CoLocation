@@ -1,14 +1,14 @@
-package com.patloew.colocation
+package com.eugeneroz.colocation
 
 import android.Manifest
 import android.content.Context
 import android.location.Location
+import android.net.Uri
 import android.os.Looper
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.tasks.CancellationTokenSource
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -20,7 +20,7 @@ import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,13 +33,8 @@ import kotlin.coroutines.resumeWithException
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License. */
-internal class CoLocationImpl(private val context: Context) : CoLocation {
-
-    private val locationProvider: FusedLocationProviderClient by lazy {
-        LocationServices.getFusedLocationProviderClient(context)
-    }
-    private val settings: SettingsClient by lazy { LocationServices.getSettingsClient(context) }
-
+internal class CoLocationFusedLocationImpl(private val locationProvider: FusedLocationProviderClient,
+                                           private val settings: SettingsClient) : CoLocation {
     private val cancelledMessage = "Task was cancelled"
 
     override suspend fun flushLocations() {
@@ -47,8 +42,7 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
     }
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    override suspend fun isLocationAvailable(): Boolean =
-        locationProvider.locationAvailability.await().isLocationAvailable
+    override suspend fun isLocationAvailable(): Boolean = locationProvider.locationAvailability.await().isLocationAvailable
 
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun getCurrentLocation(priority: Int): Location? =
@@ -73,13 +67,17 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
             lateinit var callback: ClearableLocationCallback
             callback = object : LocationCallback() {
                 override fun onLocationResult(result: LocationResult) {
-                    cont.resume(result.lastLocation)
+                    result.lastLocation?.apply { cont.resume(this) }
                     locationProvider.removeLocationUpdates(callback)
                     callback.clear()
                 }
             }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise
 
-            locationProvider.requestLocationUpdates(locationRequest, callback, Looper.getMainLooper()).apply {
+            locationProvider.requestLocationUpdates(
+                locationRequest,
+                callback,
+                Looper.getMainLooper()
+            ).apply {
                 addOnCanceledListener {
                     callback.clear()
                     cont.resumeWithException(TaskCancelledException(cancelledMessage))
@@ -91,28 +89,37 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
             }
         }
 
-    @ExperimentalCoroutinesApi
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
-    override fun getLocationUpdates(locationRequest: LocationRequest, capacity: Int): Flow<Location> =
-        callbackFlow<Location> {
-            val callback = object : LocationCallback() {
-                private var counter: Int = 0
-                override fun onLocationResult(result: LocationResult) {
-                    trySendBlocking(result.lastLocation)
-                    if (locationRequest.numUpdates == ++counter) close()
+    override fun getLocationUpdates(locationRequest: LocationRequest, capacity: Int): Flow<Location> = callbackFlow {
+                val callback = object : LocationCallback() {
+                    private var counter: Int = 0
+                    override fun onLocationResult(result: LocationResult) {
+                        result.lastLocation?.apply {
+                            trySendBlocking(this)
+                            if (locationRequest.numUpdates == ++counter) close()
+                        }
+                    }
+                }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise
+
+                locationProvider.requestLocationUpdates(
+                    locationRequest,
+                    callback,
+                    Looper.getMainLooper()
+                ).apply {
+                    addOnCanceledListener {
+                        cancel(
+                            cancelledMessage,
+                            TaskCancelledException(cancelledMessage)
+                        )
+                    }
+                    addOnFailureListener { cancel("Error requesting location updates", it) }
                 }
-            }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise
 
-            locationProvider.requestLocationUpdates(locationRequest, callback, Looper.getMainLooper()).apply {
-                addOnCanceledListener { cancel(cancelledMessage, TaskCancelledException(cancelledMessage)) }
-                addOnFailureListener { cancel("Error requesting location updates", it) }
-            }
-
-            awaitClose {
-                locationProvider.removeLocationUpdates(callback)
-                callback.clear()
-            }
-        }.buffer(capacity)
+                awaitClose {
+                    locationProvider.removeLocationUpdates(callback)
+                    callback.clear()
+                }
+            }.buffer(capacity)
 
     override suspend fun checkLocationSettings(locationSettingsRequest: LocationSettingsRequest): CoLocation.SettingsResult =
         suspendCancellableCoroutine { cont ->
@@ -140,12 +147,10 @@ internal class CoLocationImpl(private val context: Context) : CoLocation {
     override suspend fun setMockMode(isMockMode: Boolean) {
         locationProvider.setMockMode(isMockMode).await()
     }
-
 }
 
 /** Wraps [callback] so that the reference can be cleared */
 private class ClearableLocationCallback(callback: LocationCallback) : LocationCallback() {
-
     private var callback: LocationCallback? = callback
 
     override fun onLocationAvailability(locationAvailability: LocationAvailability) {
@@ -159,5 +164,4 @@ private class ClearableLocationCallback(callback: LocationCallback) : LocationCa
     fun clear() {
         callback = null
     }
-
 }

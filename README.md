@@ -1,6 +1,6 @@
 # Coroutines Location API Library for Android
 
-[![Build Status](https://travis-ci.org/patloew/CoLocation.svg?branch=main)](https://travis-ci.org/patloew/CoLocation) [![codecov](https://codecov.io/gh/patloew/CoLocation/branch/main/graph/badge.svg)](https://codecov.io/gh/patloew/CoLocation) [![Maven Central](https://img.shields.io/maven-central/v/com.patloew.colocation/colocation.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.patloew.colocation%22%20AND%20a:%22colocation%22) [![API](https://img.shields.io/badge/API-14%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=14)
+[![Build Status](https://travis-ci.org/eugeneroz/CoLocation.svg?branch=main)](https://travis-ci.org/eugeneroz/CoLocation) [![codecov](https://codecov.io/gh/eugeneroz/CoLocation/branch/main/graph/badge.svg)](https://codecov.io/gh/eugeneroz/CoLocation) [![Maven Central](https://img.shields.io/maven-central/v/com.eugeneroz.colocation/colocation.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22com.eugeneroz.colocation%22%20AND%20a:%22colocation%22) [![API](https://img.shields.io/badge/API-21%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=21)
 
 This library wraps the Location APIs in Kotlin coroutines and `Flow`.
 
@@ -76,8 +76,8 @@ The library is available on Maven Central. Add the following to your `build.grad
 
 ```groovy
 dependencies {
-    implementation 'com.patloew.colocation:colocation:1.1.0'
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.eugeneroz.colocation:colocation:1.1.0'
+    implementation 'com.google.android.gms:play-services-location:19.0.1'
 }
 ```
 
@@ -90,11 +90,11 @@ to set the source code compatibility to Java 8:
 ```groovy
 android {
   compileOptions {
-      sourceCompatibility JavaVersion.VERSION_1_8
-      targetCompatibility JavaVersion.VERSION_1_8
+      sourceCompatibility JavaVersion.VERSION_11
+      targetCompatibility JavaVersion.VERSION_11
   }
   kotlinOptions {
-      jvmTarget = "1.8"
+      jvmTarget = "11"
   }
 }
 ```
@@ -111,7 +111,7 @@ to `bc1q5uejfyl2kskhhveg7lx4fcwgv8hz88r92yzjsu`. Thank you!
 
 # License
 
-	Copyright 2020 Patrick Löwenstein
+	Copyright 2022 Eugene Rozenberg
 
 	Licensed under the Apache License, Version 2.0 (the "License");
 	you may not use this file except in compliance with the License.

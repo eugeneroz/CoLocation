@@ -1,14 +1,18 @@
-package com.patloew.colocation
+package com.eugeneroz.colocation
 
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
+import android.location.Geocoder.GeocodeListener
 import android.location.Location
+import android.os.Build
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import kotlin.coroutines.resume
 
-/* Copyright 2020 Patrick Löwenstein
+/* Copyright 2022 Eugene Rozenberg
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,14 +70,23 @@ internal class CoGeocoderImpl(
         longitude: Double,
         locale: Locale,
         maxResults: Int
-    ): List<Address> = withContext(dispatcher) { geocoder.getFromLocation(latitude, longitude, maxResults) }
+    ): List<Address> = withContext(dispatcher) {
+         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCancellableCoroutine { cont ->
+                geocoder.getFromLocation(latitude, longitude, maxResults
+                ) { addresses -> cont.resume(addresses) }
+            }
+        } else {
+            geocoder.getFromLocation(latitude, longitude, maxResults) ?: emptyList()
+        }
+    }
 
     override suspend fun getAddressListFromLocationName(
         locationName: String,
         locale: Locale,
         maxResults: Int
     ): List<Address> =
-        withContext(dispatcher) { geocoder.getFromLocationName(locationName, maxResults) }
+        withContext(dispatcher) { geocoder.getFromLocationName(locationName, maxResults) ?: emptyList() }
 
     override suspend fun getAddressListFromLocationName(
         locationName: String,
@@ -91,6 +104,6 @@ internal class CoGeocoderImpl(
             lowerLeftLongitude,
             upperRightLatitude,
             upperRightLongitude
-        )
+        ) ?: emptyList()
     }
 }
