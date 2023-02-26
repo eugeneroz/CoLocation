@@ -1,9 +1,7 @@
 package com.eugeneroz.colocation
 
 import android.Manifest
-import android.content.Context
 import android.location.Location
-import android.net.Uri
 import android.os.Looper
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.common.api.ResolvableApiException

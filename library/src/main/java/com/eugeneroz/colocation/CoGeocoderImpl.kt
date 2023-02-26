@@ -3,7 +3,6 @@ package com.eugeneroz.colocation
 import android.content.Context
 import android.location.Address
 import android.location.Geocoder
-import android.location.Geocoder.GeocodeListener
 import android.location.Location
 import android.os.Build
 import kotlinx.coroutines.CoroutineDispatcher

@@ -3,14 +3,13 @@ plugins {
     id 'kotlin-android'
     id 'de.mannodermaus.android-junit5'
     id 'jacoco'
+    id 'com.vanniktech.maven.publish'
 }
 
 ext {
     RELEASE_REPOSITORY_URL = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
     SNAPSHOT_REPOSITORY_URL = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
 }
-
-apply plugin: "com.vanniktech.maven.publish"
 
 jacoco {
     toolVersion = "0.8.8"
@@ -57,7 +56,8 @@ dependencies {
 
     api 'com.google.android.gms:play-services-location:20.0.0'
 
-    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.7.21'
+    implementation 'androidx.core:core-ktx:1.9.0'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4'
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.6.4'
 

@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Looper
 import android.util.Log
 import androidx.annotation.RequiresPermission
+import androidx.core.location.LocationListenerCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -47,7 +48,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
     override suspend fun flushLocations() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             suspendCancellableCoroutine<Unit> { cont ->
-                val locationListener = object : LocationListener {
+                val locationListener = object : LocationListenerCompat {
                     override fun onLocationChanged(location: Location) {}
                     override fun onFlushComplete(requestCode: Int) {
                         if (locationManager.allProviders.size - 1 == requestCode) {
@@ -94,7 +95,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
     override suspend fun getLocationUpdate(locationRequest: LocationRequest): Location =
         suspendCancellableCoroutine { cont ->
             lateinit var callback: ClearableLocationListener
-            callback = LocationListener { location ->
+            callback = LocationListenerCompat { location ->
                 cont.resume(location)
                 locationManager.removeUpdates(callback)
                 callback.clear()
@@ -114,7 +115,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
         capacity: Int
     ): Flow<Location> =
         callbackFlow {
-            val callback = object : LocationListener {
+            val callback = object : LocationListenerCompat {
                 private var counter: Int = 0
 
                 override fun onLocationChanged(location: Location) {
@@ -209,7 +210,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
 }
 
 /** Wraps [listener] so that the reference can be cleared */
-private class ClearableLocationListener(listener: LocationListener) : LocationListener {
+private class ClearableLocationListener(listener: LocationListenerCompat) : LocationListenerCompat {
     private var listener: LocationListener? = listener
 
     override fun onLocationChanged(location: Location) {
