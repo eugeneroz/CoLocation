@@ -13,7 +13,10 @@ import androidx.annotation.RequiresPermission
 import androidx.core.location.LocationListenerCompat
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
-import com.google.android.gms.location.*
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsStatusCodes
+import com.google.android.gms.location.SettingsClient
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
@@ -103,7 +106,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
 
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                locationRequest.interval,
+                locationRequest.intervalMillis,
                 0f,
                 callback
             )
@@ -120,7 +123,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
 
                 override fun onLocationChanged(location: Location) {
                     trySendBlocking(location)
-                    if (locationRequest.numUpdates == ++counter) {
+                    if (locationRequest.maxUpdates == ++counter) {
                         close()
                     }
                 }
@@ -134,7 +137,7 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
 
             locationManager.requestLocationUpdates(
                 LocationManager.GPS_PROVIDER,
-                locationRequest.interval,
+                locationRequest.intervalMillis,
                 0f,
                 callback,
                 Looper.getMainLooper()
@@ -202,10 +205,6 @@ internal class CoLocationLocationManagerImpl(private val context: Context,
     @RequiresPermission(anyOf = [Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION])
     override suspend fun setMockMode(isMockMode: Boolean) {
         locationManager.setTestProviderEnabled(LocationManager.GPS_PROVIDER, isMockMode)
-    }
-
-    companion object {
-        private const val FLUSH_REQUEST_CODE = 1
     }
 }
 

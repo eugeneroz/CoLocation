@@ -10,6 +10,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 /* Copyright 2022 Eugene Rozenberg
  *
@@ -35,10 +36,17 @@ internal class CoGeocoderImpl(
     override suspend fun getAddressFromLocation(location: Location, locale: Locale): Address? =
         getAddressListFromLocation(location.latitude, location.longitude, locale, 1).firstOrNull()
 
-    override suspend fun getAddressFromLocation(latitude: Double, longitude: Double, locale: Locale): Address? =
+    override suspend fun getAddressFromLocation(
+        latitude: Double,
+        longitude: Double,
+        locale: Locale
+    ): Address? =
         getAddressListFromLocation(latitude, longitude, locale, 1).firstOrNull()
 
-    override suspend fun getAddressFromLocationName(locationName: String, locale: Locale): Address? =
+    override suspend fun getAddressFromLocationName(
+        locationName: String,
+        locale: Locale
+    ): Address? =
         getAddressListFromLocationName(locationName, locale, 1).firstOrNull()
 
     override suspend fun getAddressFromLocationName(
@@ -62,7 +70,8 @@ internal class CoGeocoderImpl(
         location: Location,
         locale: Locale,
         maxResults: Int
-    ): List<Address> = getAddressListFromLocation(location.latitude, location.longitude, locale, maxResults)
+    ): List<Address> =
+        getAddressListFromLocation(location.latitude, location.longitude, locale, maxResults)
 
     override suspend fun getAddressListFromLocation(
         latitude: Double,
@@ -70,9 +79,10 @@ internal class CoGeocoderImpl(
         locale: Locale,
         maxResults: Int
     ): List<Address> = withContext(dispatcher) {
-         return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             suspendCancellableCoroutine { cont ->
-                geocoder.getFromLocation(latitude, longitude, maxResults
+                geocoder.getFromLocation(
+                    latitude, longitude, maxResults
                 ) { addresses -> cont.resume(addresses) }
             }
         } else {
@@ -84,8 +94,19 @@ internal class CoGeocoderImpl(
         locationName: String,
         locale: Locale,
         maxResults: Int
-    ): List<Address> =
-        withContext(dispatcher) { geocoder.getFromLocationName(locationName, maxResults) ?: emptyList() }
+    ): List<Address> = withContext(dispatcher) {
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCoroutine { continuation ->
+                geocoder.getFromLocationName(
+                    locationName, maxResults
+                ) {
+                    continuation.resume(value = it)
+                }
+            }
+        } else {
+            geocoder.getFromLocationName(locationName, maxResults) ?: emptyList()
+        }
+    }
 
     override suspend fun getAddressListFromLocationName(
         locationName: String,
@@ -96,13 +117,28 @@ internal class CoGeocoderImpl(
         locale: Locale,
         maxResults: Int
     ): List<Address> = withContext(dispatcher) {
-        geocoder.getFromLocationName(
-            locationName,
-            maxResults,
-            lowerLeftLatitude,
-            lowerLeftLongitude,
-            upperRightLatitude,
-            upperRightLongitude
-        ) ?: emptyList()
+        return@withContext if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            suspendCoroutine { continuation ->
+                geocoder.getFromLocationName(
+                    locationName,
+                    maxResults,
+                    lowerLeftLatitude,
+                    lowerLeftLongitude,
+                    upperRightLatitude,
+                    upperRightLongitude
+                ) {
+                    continuation.resume(value = it)
+                }
+            }
+        } else {
+            geocoder.getFromLocationName(
+                locationName,
+                maxResults,
+                lowerLeftLatitude,
+                lowerLeftLongitude,
+                upperRightLatitude,
+                upperRightLongitude
+            ) ?: emptyList()
+        }
     }
 }

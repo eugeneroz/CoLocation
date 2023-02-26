@@ -1,15 +1,12 @@
 package com.eugeneroz.colocationsample
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.location.Address
 import android.location.Location
-import android.os.Bundle
 import android.util.Log
 import androidx.lifecycle.*
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.CreationExtras
-import androidx.savedstate.SavedStateRegistryOwner
 import com.eugeneroz.colocation.CoGeocoder
 import com.eugeneroz.colocation.CoLocation
 import com.google.android.gms.location.LocationRequest
@@ -36,10 +33,9 @@ class MainViewModel(
     private val coGeocoder: CoGeocoder,
 ) : ViewModel(), DefaultLifecycleObserver {
 
-    private val locationRequest: LocationRequest = LocationRequest.create()
-        .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
-        .setInterval(5000)
-
+    private val locationRequest: LocationRequest =
+        LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 5000)
+        .build()
 
     private val mutableLocationUpdates: MutableLiveData<Location> = MutableLiveData()
     val locationUpdates: LiveData<Location> = mutableLocationUpdates
@@ -93,24 +89,6 @@ class MainViewModel(
     }
 
     companion object {
-        fun provideFactory(
-            application: Application,
-            owner: SavedStateRegistryOwner,
-            defaultArgs: Bundle? = null
-        ): AbstractSavedStateViewModelFactory = object : AbstractSavedStateViewModelFactory(owner, defaultArgs) {
-            override fun <T : ViewModel> create(
-                key: String,
-                modelClass: Class<T>,
-                savedStateHandle: SavedStateHandle
-            ): T {
-                @Suppress("UNCHECKED_CAST")
-                return MainViewModel(
-                    CoLocation.from(application, useFusedLocation = false),
-                    CoGeocoder.from(application)) as T
-            }
-
-        }
-
         @Suppress("UNCHECKED_CAST")
         val Factory : ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             override fun <T : ViewModel> create(

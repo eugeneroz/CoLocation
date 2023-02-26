@@ -94,7 +94,7 @@ internal class CoLocationFusedLocationImpl(private val locationProvider: FusedLo
                     override fun onLocationResult(result: LocationResult) {
                         result.lastLocation?.apply {
                             trySendBlocking(this)
-                            if (locationRequest.numUpdates == ++counter) close()
+                            if (locationRequest.maxUpdates == ++counter) close()
                         }
                     }
                 }.let(::ClearableLocationCallback) // Needed since we would have memory leaks otherwise
