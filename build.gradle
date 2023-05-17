@@ -2,7 +2,7 @@
 
 buildscript {
     ext {
-        kotlin_version = '1.8.10'
+        kotlin_version = '1.8.20'
     }
 
     repositories {
@@ -11,7 +11,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.android.tools.build:gradle:8.2.0-alpha01'
+        classpath 'com.android.tools.build:gradle:8.2.0-alpha03'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.8.2.1'
 
