@@ -156,14 +156,14 @@ interface CoLocation {
     /** Result from a call to [CoLocation.checkLocationSettings]. */
     sealed class SettingsResult {
         /** Location settings are satisfied. */
-        object Satisfied : SettingsResult()
+        data object Satisfied : SettingsResult()
 
         /**
          * Location settings are not satisfied, but this can be fixed by showing the user a dialog.
          *
          *     resolvable.resolve(activity, REQUEST_CODE_SETTINGS)
          */
-        class Resolvable(val exception: ResolvableApiException) : SettingsResult() {
+        class Resolvable(private val exception: ResolvableApiException) : SettingsResult() {
             /**
              * Show the dialog to the user. The Activity's onActivityResult method will be invoked after the user is
              * done. If the resultCode is RESULT_OK, the location settings are now satisfied.
