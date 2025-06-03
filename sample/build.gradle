@@ -4,12 +4,12 @@ plugins {
 }
 android {
     namespace 'com.eugeneroz.colocationsample'
-    compileSdk 34
+    compileSdk 35
 
     defaultConfig {
         applicationId "com.eugeneroz.colocationsample"
         minSdkVersion 21
-        targetSdkVersion 34
+        targetSdkVersion 35
         versionCode 1
         versionName "1.0.0"
     }
@@ -49,14 +49,14 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:1.7.0'
     implementation 'com.google.android.material:material:1.12.0'
-    implementation 'androidx.core:core-ktx:1.13.1'
-    implementation "androidx.activity:activity-ktx:1.9.2"
-    implementation "androidx.fragment:fragment-ktx:1.8.4"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.6"
+    implementation 'androidx.core:core-ktx:1.16.0'
+    implementation "androidx.activity:activity-ktx:1.10.1"
+    implementation "androidx.fragment:fragment-ktx:1.8.7"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.0"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0"
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2'
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2"
 
     implementation project(':library')
 
@@ -66,10 +66,10 @@ dependencies {
         transitive = true
     }
 
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:3.0-alpha-1'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:3.0-alpha-8'
 
-    testImplementation 'io.mockk:mockk:1.13.9'
+    testImplementation 'io.mockk:mockk:1.14.2'
     testImplementation 'junit:junit:4.13.2'
     testImplementation "androidx.arch.core:core-testing:2.2.0"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0'
+    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
 }
